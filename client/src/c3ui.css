@@ -1,0 +1,148 @@
+
+.blue-background, .cv-meter {
+
+	background-image: url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACgAAABkAQMAAADOquA5AAAABGdBTUEAALGPC/xhBQAAAAFzUkdCAK7OHOkAAAAgY0hSTQAAeiYAAICEAAD6AAAAgOgAAHUwAADqYAAAOpgAABdwnLpRPAAAAAZQTFRFAHPq////ommkngAAAAFiS0dEAf8CLd4AAAAPSURBVCjPY2AYBaOA+gAAAlgAAXU2hncAAAAldEVYdGRhdGU6Y3JlYXRlADIwMTMtMDItMTFUMDk6NDE6MjEtMDg6MDAxSnvDAAAAJXRFWHRkYXRlOm1vZGlmeQAyMDEzLTAyLTExVDA5OjQxOjIxLTA4OjAwQBfDfwAAAABJRU5ErkJggg==);
+
+}
+
+.pink-background, .cv-active {
+
+	background-image: url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACgAAABkAQMAAADOquA5AAAABGdBTUEAALGPC/xhBQAAAAFzUkdCAK7OHOkAAAAgY0hSTQAAeiYAAICEAAD6AAAAgOgAAHUwAADqYAAAOpgAABdwnLpRPAAAAAZQTFRF/wCE////IyYVfQAAAAFiS0dEAf8CLd4AAAAPSURBVCjPY2AYBaOA+gAAAlgAAXU2hncAAAAldEVYdGRhdGU6Y3JlYXRlADIwMTMtMDItMTFUMDk6NDk6NDEtMDg6MDDk8jKwAAAAJXRFWHRkYXRlOm1vZGlmeQAyMDEzLTAyLTExVDA5OjQ5OjQxLTA4OjAwla+KDAAAAABJRU5ErkJggg==);
+
+}
+
+.yellow-background {
+	background-image: url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACgAAABkAQMAAADOquA5AAAABGdBTUEAALGPC/xhBQAAAAFzUkdCAK7OHOkAAAAgY0hSTQAAeiYAAICEAAD6AAAAgOgAAHUwAADqYAAAOpgAABdwnLpRPAAAAAZQTFRF/P9m////E6Ap7AAAAAFiS0dEAf8CLd4AAAAPSURBVCjPY2AYBaOA+gAAAlgAAXU2hncAAAAldEVYdGRhdGU6Y3JlYXRlADIwMTMtMDItMTFUMTA6MDk6MTktMDg6MDA1vuqvAAAAJXRFWHRkYXRlOm1vZGlmeQAyMDEzLTAyLTExVDEwOjA5OjE5LTA4OjAwRONSEwAAAABJRU5ErkJggg==);
+
+}
+
+.cv-button {
+	width: 10ex;
+  	background-color: #666666;
+  	color: #fff;
+}
+
+.cv-control, .cv-button {
+	position: relative;
+	height: 1.5em;
+	margin: 0.5ex;
+	overflow: hidden;
+	border-radius: 0.5ex;
+	border: 1px solid black;
+}
+
+.cv-label, .cv-number, .cv-button {
+	font: -webkit-small-control;
+}
+
+.cv-control .cv-slider,
+.cv-control .cv-number,
+.cv-control .cv-label {
+	position: absolute;
+	top: 0;
+	height: 100%;
+	margin: 0;
+	border: none;
+	box-sizing: border-box;
+	display: inline-block;
+	-webkit-user-select: none;
+	-webkit-user-drag: none;
+}
+
+.cv-slider,
+.cv-number,
+.cv-label {
+	margin: 0;
+	border: none;
+	box-sizing: border-box;
+	display: inline-block;		
+}
+
+.cv-meter {
+	background-color: #666666;
+	background-size: 50% 100%;
+	background-repeat: repeat-y;
+	background-position-x: 0;
+}
+
+.cv-control .cv-label, 
+.cv-control .cv-slider {
+	left: 0;
+	right: 8ex;
+}
+
+.cv-label {
+	color: #fff;
+	padding-left: 0.5ex;
+}
+
+.cv-slider {
+	-webkit-appearance: none;
+	background-color: transparent;
+}
+
+.cv-slider::-webkit-slider-thumb {
+	-webkit-appearance: none;
+	width: 3ex;
+	height: 100%;
+	min-height: 1em;
+	border-radius: 0.5ex;
+	background: #ff0084;	
+}
+
+.cv-control .cv-number {
+	right: 0;
+	width: 8ex;
+}
+
+.cv-number {
+	background: #fff;
+	padding: 0 0.5ex;
+}
+
+.cv-controlpad {
+	position: relative;
+	display: inline-block;
+	height: 9em;
+	width: 8em;
+	margin: 0.5ex;
+	overflow: hidden;
+	border-radius: 0.5ex;
+	border: 1px solid black;			
+}
+
+.cv-pad {
+	position: relative;
+	width: 16ex;
+	height: 8em;
+	background: #666;
+	
+}
+.cv-control .cv-pad {
+	position: absolute;
+	top: 0;
+	left: 0;
+	bottom: 1em;
+	right: 0;
+}
+
+.cv-pad-cursor {
+	position: absolute;
+	width: 3ex;
+	height: 3ex;
+	top: 50%;
+	left: 50%;
+	background: #ff0084;
+}
+
+.cv-controlpad .cv-paddata {
+	position: absolute;
+	width: 100%;
+	bottom: 0;
+	left: 0;
+	background-color: #333;
+}
+
+.cv-controlpad .cv-label {
+	width: 50%;
+}

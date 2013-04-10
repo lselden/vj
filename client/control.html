@@ -1,0 +1,532 @@
+<html>
+<head>
+	<style>
+		#targets {
+			height: 72px;
+		}
+		
+		.asset, .target {
+			display: inline-block;
+			margin: 0px;
+			cursor: pointer;
+			border: 2px solid black;
+			width: 72px;
+			height: 72px;
+			overflow: hidden;
+			vertical-align: top;
+		}
+		.thumb, .special {
+		
+			width: 72px;
+			height: 72px;
+			background-size: auto 100%;
+			background-position: center center;
+			color: white;
+			text-shadow: black 1px 1px;
+			text-align: center;
+			line-height: 2em;
+		}
+		.empty {
+			background: black;
+			height: 100%;
+			width: 100%;
+		}
+		.asset:hover, .target:hover {
+			border: 2px solid white;
+		}
+		
+		.target, .special {
+			color: white;
+			font-weight: bold;
+			background: #999;
+			background-size: auto 100%;
+			background-position: center center;
+			
+		}
+		
+		
+		body {
+			margin: 0;
+			padding: 0;
+			background: black;
+			font-family: sans-serif;
+			font-size: 12pt;
+		}
+		
+		#mediabin {
+			width: 100%;
+		}
+		
+		#controller {
+			float: right;
+			width: 50%;
+		}
+		
+		#knob, #fader {
+			width: 100%;
+			display: inline-block
+		}
+		
+		.noselect {
+			-webkit-user-select: none;
+		}
+		
+		#controls {
+			max-width: 100%;
+			border: 1px solid black;
+			margin: 1ex;
+			
+			background: rgba(127,127,127,0.25);
+			
+		}
+		
+		.cv-control {
+			height: 1em !important;
+		}
+		
+		.cv-enum {
+			position: relative;
+			height: 1.5em !important;
+		}
+		
+		.cv-enum select {
+			top: 0;
+			left: 50%;
+			margin-left: -25%;
+		}
+		
+		.cv-color, .cv-vector {
+			height: 80px !important;
+		}
+		
+		#source, #img {
+			position: absolute;
+			opacity: 0;
+		}
+		
+		.cv-container {
+			width: 25%;
+			position: relative;
+			display: inline-block;
+			vertical-align: top;
+		}
+		
+		.cv-container canvas {
+			opacity: 0.8;
+		}
+		
+		.black {
+			background: black;
+		}
+		
+		
+	</style>
+	<script type="text/javascript" src="lib/jquery.min.js"></script>
+	<script type="text/javascript" src="lib/jwerty.js"></script>
+	<script type="text/javascript" src="lib/interface.js"></script>
+	<script src="src/cv.js"></script>
+	<script src="src/vjui.js"></script>
+	<script type="text/javascript" src="src/uifactory.js"></script>
+	<link type="text/css" rel="stylesheet" href="src/c3ui.css" />
+	<script type="text/javascript" src="lib/underscore.js"></script>
+	<script type="text/javascript" src="lib/socket.io.js"></script>
+	
+	<script>
+		app = {};
+		
+		app.initController = function(vjData) {
+			app.patches = vjData.patches;
+			
+			$('#controls').empty();
+			
+			addUI('vid1', app.patches.vid1);
+			addUI('vid2', app.patches.vid2);
+			
+			addUI('invert', app.patches.invert);
+			
+			
+			addUI('mixer', app.patches.mixer);
+			addUI('key1', app.patches.key1);
+			addUI('move1', app.patches.move1);
+			addUI('key2', app.patches.key2);
+			addUI('move2', app.patches.move2);
+			
+			app.isInitialized = true;
+			
+			/*
+			var layout = data.controller;
+			var controls = {},
+					faderParent = $('#fader'),
+					knobParent = $('#knob'),
+					buttonHiParent = $('#buttonHi');
+					buttonLoParent = $('#buttonLo');
+			
+			controls.knob = layout.knob.map(function(ctl) {
+				var obj = knobParent.vjui('control', {
+					label: ctl.name,
+					spec: {min: 0, max: 1, initial: 0.5},
+					bipolar: true
+				});
+				
+				$(obj).on('change:vjui', function(evt, value) {
+					app.socket.emit(ctl.name, value);
+				});
+				
+				app.socket.on(ctl.name, function(data) {
+					obj.render(data);
+				});
+				
+				return obj;
+			});
+			
+			controls.fader = layout.fader.map(function(ctl) {
+				var obj = faderParent.vjui('control', {
+					label: ctl.name
+				});
+				
+				$(obj).on('change:vjui', function(evt, value) {
+					app.socket.emit(ctl.name, value);
+				});
+				
+				app.socket.on(ctl.name, function(data) {
+					obj.render(data);
+				});
+
+				return obj;
+			});
+			
+			controls.buttons = layout.btnhi.map(function(ctl) {
+				var obj = buttonHiParent.vjui('button', {
+					label: ctl.name
+				});
+				
+				$(obj).on('change:vjui', function(evt, value) {
+					app.socket.emit(ctl.name, value);
+				});
+				
+				app.socket.on(ctl.name, function(data) {
+					obj.render(data);
+				});
+
+				return obj;
+			}).concat(
+				layout.btnlo.map(function(ctl) {
+					var obj = buttonLoParent.vjui('button', {
+						label: ctl.name
+					});
+					
+					$(obj).on('change:vjui', function(evt, value) {
+						app.socket.emit(ctl.name, value);
+					});
+
+					app.socket.on(ctl.name, function(data) {
+						obj.render(data);
+					});
+						
+					return obj;
+				})
+			);
+		*/
+		}
+		
+		app.controls = {};
+		function addUI(patchName, patch) {
+			var ctl;
+			
+			var folder = $('<div class="cv-container"><div class="cv-label">' + patchName + '</div></div>').appendTo($('#controls'));
+			
+			
+			Object.keys(patch).forEach(function(key) {
+				var input = patch[key];
+				
+				if(input.type in widgets) {
+					ctl = makeCtl(key, input, patchName, folder);
+					app.controls[patchName + '.' + key] = ctl;
+				}
+			});
+			
+			ctl = folder.vjui('button', {
+				label: 'bypass'						
+			});
+			
+			ctl.render(false);
+			
+			$(ctl).on('change:vjui', function(evt, value) {
+				//socket.emit('set', {path: patchName + '.bypass', value: !!value});
+				socket.emit('bypass', {path: patchName, value: !!value});
+			});
+			
+			socket.on(patchName + '.bypass', function(value) {
+				ctl.render(value);
+			});
+			
+			
+		}
+		
+		function makeCtl(key, input, patchName, folder) {
+			var ctl,
+					path = patchName + '.' + key;
+		
+			switch (input.type) {
+				case 'number':
+					ctl = folder.vjui('control', {
+						label: key,
+						spec: {
+							min: input.min,
+							max: input.max,
+							step: input.step,
+							initial: input.defaultValue
+						}
+					});
+					
+					$(ctl).on('change:vjui', function(evt, value, normal) {
+						socket.emit('set', {path: path, value: ctl.spec.unmap(value)});
+					});
+					
+					socket.on(path, function(value) {
+						ctl.render(value);
+					});
+				break;
+				case 'boolean':
+					ctl = folder.vjui('button', {
+						label: key						
+					});
+					
+					ctl.render(input.defaultValue);
+					
+					$(ctl).on('change:vjui', function(evt, value) {
+						socket.emit('set', {path: path, value: value});
+					});
+					
+					socket.on(path, function(value) {
+						ctl.render(value);
+					});
+				break;
+				case 'color':
+					ctl = widgets[input.type]($.extend({
+						container: $('<div class="cv-control cv-' + input.type + '"></div>').appendTo(folder)
+					}, input));
+					
+					ctl.value.change(function() {
+						socket.emit('set', {path: path, value: ctl.value.toArray()});
+					});
+					
+					socket.on(path, function(val) {
+						ctl.value.set(val);
+					});
+					
+					socket.on(path + '.h', function(val) {
+						ctl.value.set('h', val);
+					});
+					socket.on(path + '.s', function(val) {
+						ctl.value.set('s', val);
+					});
+					socket.on(path + '.l', function(val) {
+						ctl.value.set('l', val);
+					});
+				break;
+				case 'enum':
+					ctl = widgets[input.type]($.extend({
+						container: $('<div class="cv-control cv-' + input.type + '"></div>').appendTo(folder)
+					}, input));
+					
+					ctl.cv.change(function() {
+						socket.emit('set', {path: path, value: ctl.value});
+					});
+					
+					socket.on(path, function(val) {
+						console.log(path, val);
+						ctl.menu.element.val(val);
+					});
+				break;
+				case 'vector':
+					ctl = widgets[input.type]($.extend({
+						container: $('<div class="cv-control cv-' + input.type + '"></div>').appendTo(folder)
+					}, input));
+					
+					ctl.value.change(function() {
+						socket.emit('set', {path: path, value: ctl.value.toArray()});
+					});
+					
+					socket.on(path, function(val) {
+						ctl.value.set(val);
+					});
+				break;	
+			}
+			
+			return ctl;
+			
+		}
+		
+		// coolgames.net
+		
+		function loadVideo(index, name) {
+			console.log(index, name);
+			socket.emit('video', {index: index, name: name, souce: 'control'});
+		}
+		
+		function drop(event) {
+			event.preventDefault();
+			
+			var name = event.dataTransfer.getData('name');
+			var index = event.dataTransfer.getData('index');
+			var asset;
+			var el = event.currentTarget;
+			var $el = $(el);
+			var elType = $el.data('type');
+			var targetName = $el.attr('id');
+			var sourceType;
+			
+			console.log(elType);
+			
+			if (index === "-1") {
+				sourceType = 'source';
+				asset = {
+					index: -1,
+					name: name,
+					path: name,
+					thumb: ''
+				};
+				
+				$(el).css('background-image', '');
+				
+			} else {
+				sourceType = 'video';
+				asset = app.assets[index];
+				if(asset) {
+					$(el).css('background-image', "url('" + asset.thumb + "')");
+				}
+				
+			}
+			
+			$(el).find('.currentname').text(name);
+			
+			if(elType === 'effect' && sourceType === 'source') {
+				socket.emit('source', {source: name, target: targetName});
+			} else if(elType === 'source' && sourceType === 'video') {
+				socket.emit('video', {index: index, name: name, path: asset.path, target: targetName});
+			}
+			
+			return false;
+		}
+		
+		function allowDrop(event) {
+			event.preventDefault();
+			
+			event.dataTransfer.dropEffect = 'copy';
+			return false;
+		}
+		
+		function dragVideo(event, index, name) {
+			//event.preventDefault();
+			event.dataTransfer.effectAllowed = 'copy';
+		
+			var data = event.dataTransfer.setData('name', name);
+			data = event.dataTransfer.setData('index', index);
+			console.log(data);
+			//return false;
+		}
+	
+		var socket = io.connect(window.location.origin);
+		app.socket = socket;
+		socket.on('hello', function (data) {
+			app.controllerLayout = data.controller;
+			
+			if(data.vjdata) {
+				app.initController(data.vjdata);
+			}
+			socket.emit('pageinfo', { name: 'control' });
+		});
+		
+		socket.on('vjdata', function(vjdata) {
+			app.initController(vjdata);
+		});
+		
+		[	
+			'shift+=',
+			'ctrl+=',
+			'open-bracket/close-bracket',
+			'shift+open-bracket/shift+close-bracket',
+			'w/s/a/d/up/down/left/right',
+			'shift+w/shift+a/shift+s/shift+d/shift+up/shift+down/shift+left/shift+right',
+			'comma',
+			'period',
+			'forward-slash',
+			'ctrl+enter'
+		].forEach(function(keyString) {
+			jwerty.key(keyString, function(event, key) {
+				socket.emit('keyevent', key);
+			});
+		});
+		
+		$(document).ready(function() {
+			$.get('videos/').done(function(assets) {
+				app.assets = assets;
+				var tmpl = $('#asset-tmpl').html();
+				
+				var items = assets.map(function(asset, i) {
+					return tmpl
+						.replace(/{{index}}/g, i)
+						.replace(/{{thumb}}/g, asset.thumb)
+						.replace(/{{name}}/g, asset.name);
+				});
+				$('#mediabin').append(items.join('\n'));
+			});
+		});
+	</script>
+	<script type="text/html" id="asset-tmpl">
+		<div class="asset" draggable="true" ondragstart="dragVideo(event, {{index}}, '{{name}}')" onclick="loadVideo({{index}}, '{{name}}')">
+			<div class="thumb" style="background-image: url('{{thumb}}')">
+			{{name}}
+			</div>
+		</div>
+	</script>
+</head>
+<body>
+	<div id="targets">
+		<div id="vid1" class="target" ondrop="drop(event)" ondragover="allowDrop(event)" draggable="true" ondragstart="dragVideo(event, -1, 'vid1')" data-type="source">
+			<div class="noselect">VID 1 TARGET</div>
+			<div class="currentname"></div>
+		</div>
+		<div id="vid2" class="target" ondrop="drop(event)" ondragover="allowDrop(event)" draggable="true" ondragstart="dragVideo(event, -1, 'vid2')" data-type="source">
+			<div class="noselect">VID 2 TARGET</div>
+			<div class="currentname"></div>
+		</div>
+		<div class="target"><div class="empty">_</div></div>
+		<div id="feedback" class="target" draggable="true" ondragstart="dragVideo(event, -1, 'feedback')" data-type="feedback">
+			<div class="noselect">FEED BACK</div>
+			<div class="currentname"></div>
+		</div>
+		<div id="webcam" class="target" draggable="true" ondragstart="dragVideo(event, -1, 'webcam')" data-type="webcam">
+			<div class="noselect">WEBCAM</div>
+			<div class="currentname"></div>
+		</div>
+		<div id="key1" class="target" ondrop="drop(event)" ondragover="allowDrop(event)" data-type="effect">
+			<div class="noselect">KEY 1 TARGET</div>
+			<div class="currentname"></div>
+		</div>
+		<div id="key2" class="target" ondrop="drop(event)" ondragover="allowDrop(event)" data-type="effect">
+			<div class="noselect">KEY 2 TARGET</div>
+			<div class="currentname"></div>
+		</div>
+		
+		
+	</div>
+	<div id="mediabin">
+	
+	</div>
+	<div id="controls">
+	</div>
+	<div id="controller">
+		<div id="left"></div>
+		<div id="knob"></div>
+		<div id="fader"></div>
+		<div id="buttonHi"></div>
+		<div id="buttonLo"></div>
+	</div>
+</body>
+</html>
+
+
+
+

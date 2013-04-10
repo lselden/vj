@@ -1,0 +1,405 @@
+<!DOCTYPE HTML>
+<html lang="en-US">
+	<head>
+		<meta charset="UTF-8">
+		<title>Visual Music</title>
+		<!--<script type="text/javascript" src="lib/webgl-debug.js"></script> -->
+		<script type="text/javascript" src="lib/Seriously.js/seriously.js"></script>
+		<script type="text/javascript" src="lib/jquery.min.js"></script>
+		<script type="text/javascript" src="lib/jwerty.js"></script>
+		<script type="text/javascript" src="lib/underscore.js"></script>
+		<script type="text/javascript" src="lib/EventEmitter.js"></script>
+		<script type="text/javascript" src="lib/socket.io.js"></script>
+		<script src="lib/interface.js"></script>
+		<script src="src/cv.js"></script>
+		<script src="src/uifactory.js"></script>
+		<script src="src/vjui.js"></script>
+		<link type="text/css" rel="stylesheet" href="src/c3ui.css" />
+	
+		
+		<script type="text/javascript" src="src/main.js"></script>
+		<script type="text/javascript" src="src/keybindings.js"></script>
+		
+		<script type="text/javascript" src="lib/Seriously.js/effects/seriously.ascii.js"></script>
+		<script type="text/javascript" src="lib/Seriously.js/effects/seriously.bleach-bypass.js"></script>
+		<script type="text/javascript" src="lib/Seriously.js/effects/seriously.blend.js"></script>
+		<script type="text/javascript" src="lib/Seriously.js/effects/seriously.color.js"></script>
+		<script type="text/javascript" src="lib/Seriously.js/effects/seriously.edge.js"></script>
+		<script type="text/javascript" src="lib/Seriously.js/effects/seriously.emboss.js"></script>
+		<script type="text/javascript" src="lib/Seriously.js/effects/seriously.exposure.js"></script>
+		<script type="text/javascript" src="lib/Seriously.js/effects/seriously.lumakey.js"></script>
+		<script type="text/javascript" src="lib/Seriously.js/effects/seriously.fader.js"></script>
+		<script type="text/javascript" src="lib/Seriously.js/effects/seriously.hue-saturation.js"></script>
+		<script type="text/javascript" src="lib/Seriously.js/effects/seriously.hex.js"></script>
+		<script type="text/javascript" src="lib/Seriously.js/effects/seriously.invert.js"></script>
+		<script type="text/javascript" src="lib/Seriously.js/effects/seriously.nightvision.js"></script>
+		<script type="text/javascript" src="lib/Seriously.js/effects/seriously.noise.js"></script>
+		<script type="text/javascript" src="lib/Seriously.js/effects/seriously.ripple.js"></script>
+		<script type="text/javascript" src="lib/Seriously.js/effects/seriously.sepia.js"></script>
+		<script type="text/javascript" src="lib/Seriously.js/effects/seriously.sketch.js"></script>
+		<script type="text/javascript" src="lib/Seriously.js/effects/seriously.split.js"></script>
+		<script type="text/javascript" src="lib/Seriously.js/effects/seriously.tone.js"></script>
+		<script type="text/javascript" src="lib/Seriously.js/effects/seriously.tvglitch.js"></script>
+		<script type="text/javascript" src="lib/Seriously.js/effects/seriously.vignette.js"></script>
+		<script type="text/javascript" src="lib/gif.js"></script>
+		<script type="text/javascript" src="src/superchroma.js"></script>
+		<script type="text/javascript" src="src/feedback.js"></script>
+		<script type="text/javascript" src="src/crossfade.js"></script>
+		<script type="text/javascript" src="src/filterkey.js"></script>
+		<script type="text/javascript" src="src/transform.js"></script>
+		<script type="text/javascript" src="src/invert2.js"></script>
+		
+		<style>
+		
+		body {
+			background-color: #fff;
+			margin: 0;
+			padding: 0;
+			overflow: hidden;
+		}
+		
+		#canvas {
+			min-height: 100%;
+			width: 100%;
+			margin: auto;
+			overflow: hidden;
+		}
+		
+		#controls {
+			position: fixed;
+			right: 0;
+			bottom: 0;
+			max-height: 75%;
+			max-width: 100%;
+			border: 1px solid black;
+			min-width: 320px;
+			margin: 1ex;
+			
+			background: rgba(127,127,127,0.25);
+			overflow: auto;
+		}
+		
+		.cv-control {
+			width: 320px;
+			height: 1em;
+		}
+		
+		.cv-number, .cv-enum {
+			height: 2em;
+			position: relative;
+		}
+		
+		.cv-enum select {
+			top: 0;
+			left: 50%;
+			margin-left: -25%;
+		}
+		
+		.cv-color, .cv-vector {
+			height: 8em;
+		}
+		
+		#source, #img {
+			position: absolute;
+			opacity: 0;
+		}
+		
+		.cv-container {
+			position: relative;
+			display: inline-block;
+			vertical-align: top;
+		}
+		
+		.cv-container canvas {
+			opacity: 0.8;
+		}
+		
+		.black {
+			background: black;
+		}
+		
+		</style>
+		<script>
+			window.hasVideoList = $.Deferred();
+			window.hasVideoPlayer = $.Deferred();
+			
+			var socket = io.connect('http://localhost:8080');
+			
+			socket.on('hello', function(data) {
+				window.assets = data.assets;
+				window.controllerLayout = data.controller;
+				socket.emit('pageinfo', {
+					name: 'video'
+				});
+				
+				if (main) {
+					main.attachIO(socket);
+				}
+				
+				hasVideoList.resolve(data.assets);
+			});
+			
+			var commands = {
+				// set controlname to ui element / control
+				'assign': function() {},
+				
+				// return list of current ui / controls
+				'list': function() {
+					var out = {};
+					C3Node.library.forEach(function(node, i) {
+						out[node.id] = node.controls;
+					});
+					return out;
+				},
+				
+				'keyevent': function(keyString) {
+					jwerty.fire(keyString, document, document.body);
+				}
+				
+			};
+			
+			for(var cmd in commands) {
+				if(commands.hasOwnProperty(cmd)) {
+					socket.on(cmd, commands[cmd]);
+				}
+			}
+			
+		</script>
+	
+	</head>
+	<body class="black">
+		<div id="controls">
+		</div>
+		
+	<canvas id="canvas" width="800" height="600"></canvas>
+	
+	<!--
+	<script type="text/javascript" src="lib/html5slider.js"></script>
+	<script type="text/javascript" src="lib/colorPicker/colorPicker.js"></script>
+	-->
+	<script>
+		var USEVIDEO = false;
+		var videoLoadPromise = $.Deferred();
+		
+		$(document).ready(function() {
+			if(USEVIDEO) {
+				var videoStream,
+						video,
+						getUserMedia = navigator.getUserMedia || navigator.mozGetUserMedia || navigator.webkitGetUserMedia,
+						url = window.URL || window.mozURL || window.webkitURL;
+									
+				video = document.createElement('video');
+				video.id = 'img';
+				video.width = 320;
+				video.height = 240;
+				video.autoplay = 'autoplay';
+				$(video).hide();
+				document.body.appendChild(video);
+				
+				if( !getUserMedia ) {
+					throw new Error('getUserMedia is not available');
+				}
+				
+				getUserMedia.call(navigator, {video: true}, function(stream) {				
+					videoStream = stream;
+					window.stream = stream;
+					if (video.mozSrcObject !== undefined) {
+						video.mozSrcObject = stream;
+					} else {
+						video.src = (url) ? url.createObjectURL(stream) : stream;
+					}
+					video.play();
+					videoLoadPromise.resolve();
+				}, function(e) {
+					console.error(e);
+				});
+				
+				video.addEventListener('error', function(e) {
+					console.error('video', e.code);
+				});
+				
+			} else {
+				/*
+				var el = document.createElement('img');
+				el.id = 'img';
+				el.width = 320;
+				el.height = 240;
+				el.src = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAANwAAAClCAYAAAA3d5OIAAAABmJLR0QA/wD/AP+gvaeTAAAAB3RJTUUH2gIPFxcpA4p/0AAAA2BJREFUeJzt2r9qVHkcxuHvmRyHhCASRcRStErnwnYWWdgljaX1doqCld5CRNhLELtd8AJs1sq5AmFTuMUqoiABXSZIxEgyzngDyWbI4vsrfJ72/HnPwHw4U0w3Go1m1cjz59drdfWfJtt/j8/XrdOPmmxXVfUvrtXk0r9Ntq/8caU2Hm402a6qGg9+qdPT/Sbb909cqyf7t5tsV1UNmi3Dd0hwECQ4CBIcBAkOggQHQYKDIMFBkOAgSHAQJDgIEhwECQ6CBAdBgoMgwUGQ4CBIcBAkOAgSHAQJDoIEB0GCgyDBQZDgIEhwECQ4CBIcBAkOggQHQYKDIMFBkOAgSHAQJDgIEhwECQ6CBAdBgoMgwUGQ4CBIcBAkOAgSHAQJDoIEB0GCgyDBQZDgIEhwECQ4CBIcBAkOggQHQYKDIMFBkOAgSHAQJDgIEhwECQ6CBAdBgoMgwUGQ4CBIcBAkOAgSHAQJDoIEB0GCgyDBQZDgIEhwECQ4CBIcBAkOggQHQYKDIMFBkOAgSHAQJDgIEhwECQ6CBAdBgoMgwUGQ4CBIcBAkOAgSHAQJDoIEB0GCgyDBQZDgIEhwECQ4CBIcBAkOggQHQYKDIMFBkOAgSHAQJDgIEhwECQ6C+rW1duPLyz/W4uK4yfbZ6akabTeZrqqqeycv17Phsybbf/2wVGujJtNVVbVy82IN3r9vsr2+PqzRjSbTVeUNB1GCgyDBQZDgIEhwECQ4CBIcBAkOggQHQYKDIMFBkOAgqO9PPm02PhuOa78/dejxy6sX6szK4cf/j+Xpcm1/Pv6/l7dejevNy3fHvv7DtGpx/9yxr/9P3bQ+94f/OXiws1MnNje/zfYcph8/1uzLlyPP67quBoP53gkLCwtznbe1tVWbDT97VxeuzpqtH+HPB3dq/eefWj/Gge7++luNfn/d+jEONBl8qrcrj1s/xqF2d3drNjv6a9f3fQ2Hw7nuubS0VF3XHXneZDKpvb29ue75LfhJCUGCgyDBQZDgIEhwECQ4CBIcBAkOggQHQYKDIMFBkOAgSHAQJDgIEhwECQ6CBAdBgoMgwUGQ4CBIcBAkOAgSHAQJDoIEB0GCgyDBQZDgIEhwECQ4CBIcBAkOggQHQYKDIMFBkOAgSHAQJDgIEhwECQ6CvgJd+V3gFFLyFgAAAABJRU5ErkJggg==";
+				document.body.appendChild(el);
+				*/
+				videoLoadPromise.resolve();
+			}
+		});
+		</script>
+		
+		<script>
+	
+		</script>
+	<script type="text/javascript">
+		var s;
+				
+		
+		videoLoadPromise.done(function() {
+			s = Seriously();
+			
+			var main = new Main();
+			
+			main.attachIO(socket);
+			
+			window.main = main;
+			
+			hasVideoList.done(function(assets) {
+				main.vid1.load(assets[~~(Math.random()*assets.length)].path);
+			});
+			
+			/*
+			addUI('filterkey', main.key1, 'key input');
+			addUI('transform', main.move1, 'key loop');
+			addUI('filterkey', main.key2, 'key input');
+			addUI('transform', main.move2, 'key loop');
+			addUI('blend', main.mixer, 'blend');
+			*/
+			initKeys();
+			
+		});
+		
+		var controls = {};
+		function addUI(effectName, patch, label) {
+			var manifest = patch.controls,
+					effect = patch.effect,
+					ctl;
+			
+			var folder = $('<div class="cv-container"><div class="cv-label">' + effectName + '</div></div>').appendTo($('#controls'));
+			
+			
+			function makeCtl(key, input, effect) {
+				var ctl;
+
+				if (input.type === 'number') {
+					ctl = folder.vjui('control', {
+						label: input.title,
+						spec: {
+							min: input.min,
+							max: input.max,
+							step: input.step,
+							initial: input.defaultValue
+						}
+					});
+					
+					$(ctl).on('change:vjui', function(evt, value) {
+						patch.set(key, value);
+					});
+					
+					patch.on('change', function(changedKey, newValue) {
+						if (changedKey === key) {
+							ctl.render(newValue);
+						}
+					});
+					
+				} else if (input.type === 'boolean') {
+					ctl = folder.vjui('button', {
+						label: input.title						
+					});
+					
+					ctl.render(input.defaultValue);
+					
+					$(ctl).on('change:vjui', function(evt, value) {
+						patch.set(key, value);
+					});
+					
+					patch.on('change', function(changedKey, newValue) {
+						if (changedKey === key) {
+							ctl.render(newValue);
+						}
+					});
+					
+				} else if (input.type !== 'number') {
+					ctl = widgets[input.type]($.extend({
+						container: $('<div class="cv-control cv-' + input.type + '"></div>').appendTo(folder)
+					}, input));
+					
+					if(input.type === 'boolean') {
+						$(ctl.el).on('change', function() {
+							effect[key] = ctl.el.checked;
+						});
+					} else if(input.type === 'number') {
+						ctl.value.change(function() {
+							effect[key] = ctl.value;
+						});
+					} else if(input.type === 'color') {
+						ctl.value.change(function() {
+							effect[key] = ctl.value.toString();
+						});
+						
+						patch.on('change', function(changedKey, newValue) {
+							if (changedKey === key) {
+								ctl.value.set({
+									r: newValue[0],
+									g: newValue[1],
+									b: newValue[2]
+								});
+								/*
+								var c = ctl.value,
+										pos = ctl.xy.values[0];
+								
+										pos.x = c.h;
+										pos.y = 1 - c.l;
+										
+										ctl.z.setValue.call(ctl.z, c.s, false);
+										ctl.xy.refresh.call(ctl.xy);
+								*/		
+								//ctl.xy.values[0].x = newValue[0];
+								//ctl.xy.values[0].y = newValue[2];
+								//ctl.z.setValue(newValue[1], false);
+								//ctl.xy.refresh.call(ctl.xy);
+							}
+						
+						});
+						
+					} else if (input.type === 'enum') {
+						ctl.cv.change(function() {
+							effect[key] = ctl.value;
+						});
+					} else if (input.type === 'vector') {
+						ctl.value.change(function() {
+							effect[key] = ctl.value.toArray();
+						});
+						
+					}
+				}
+				
+				return ctl;
+				
+			}
+			
+			Object.keys(manifest).forEach(function(key) {
+				var input = manifest[key];
+				
+				if(input.type in widgets) {
+					controls[key] = makeCtl(key, input, effect);
+				}
+			});
+			
+			ctl = folder.vjui('button', {
+				label: 'bypass'						
+			});
+			
+			ctl.render(false);
+			
+			$(ctl).on('change:vjui', function(evt, value) {
+				patch.bypass(value);
+			});
+			
+			patch.on('load', function(current, old) {
+				ctl.render(current !== effect);
+			});
+			
+			
+		}
+		
+		$('#controls').toggle();
+	
+	</script>	
+	</body>
+	
+</html>
