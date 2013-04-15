@@ -47,6 +47,10 @@
 	display: inline-block;
 	-webkit-user-select: none;
 	-webkit-user-drag: none;
+	-moz-user-select: none;
+	-moz-user-drag: none;
+	user-select: none;
+	user-drag: none;
 }
 
 .cv-slider,
@@ -90,6 +94,22 @@
 	background: #ff0084;	
 }
 
+.cv-slider-handle {
+	width: 3ex;
+	height: 100%;
+	min-height: 1em;
+	border-radius: 0.5ex;
+	background: #ff0084;	
+}
+
+.cv-slider-handle {
+	position: absolute;
+	top: 0;
+	right: 8ex;
+	left: 0;
+	bottom: 0;
+}
+
 .cv-control .cv-number {
 	right: 0;
 	width: 8ex;
@@ -114,7 +134,7 @@
 .cv-pad {
 	position: relative;
 	width: 16ex;
-	height: 8em;
+	height: 6em;
 	background: #666;
 	
 }

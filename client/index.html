@@ -2,14 +2,25 @@
 <html lang="en-US">
 	<head>
 		<meta charset="UTF-8">
-		<title>Visual Music</title>
+		<title>Instant VJ - Luke Selden</title>
+		<meta property="og:title" content="Instant VJ"/>
+    <meta property="og:type" content="article"/>
+    <meta property="og:url" content="http://lukeselden.com/vj/index.html"/>
+    <meta property="og:image" content="http://lukeselden.com/vj/screenshot.jpg"/>
+    <meta property="og:site_name" content="Luke Selden"/>
+    <meta property="fb:admins" content="2728567"/>
+    <meta property="og:description"
+          content="In-browser video effects with video and webcam input.  Best with Google Chrome or Mozilla Firefox"/>
+					
+					
 		<!--<script type="text/javascript" src="lib/webgl-debug.js"></script> -->
 		<script type="text/javascript" src="lib/Seriously.js/seriously.js"></script>
 		<script type="text/javascript" src="lib/jquery.min.js"></script>
 		<script type="text/javascript" src="lib/jwerty.js"></script>
 		<script type="text/javascript" src="lib/underscore.js"></script>
 		<script type="text/javascript" src="lib/EventEmitter.js"></script>
-		<script type="text/javascript" src="lib/socket.io.js"></script>
+		<script type="text/javascript" src="jquery.share.js"></script>
+		<link type="text/css" rel="stylesheet" href="jquery.share.css" />
 		<script src="lib/interface.js"></script>
 		<script src="src/cv.js"></script>
 		<script src="src/uifactory.js"></script>
@@ -20,63 +31,83 @@
 		<script type="text/javascript" src="src/main.js"></script>
 		<script type="text/javascript" src="src/keybindings.js"></script>
 		
-		<script type="text/javascript" src="lib/Seriously.js/effects/seriously.ascii.js"></script>
-		<script type="text/javascript" src="lib/Seriously.js/effects/seriously.bleach-bypass.js"></script>
 		<script type="text/javascript" src="lib/Seriously.js/effects/seriously.blend.js"></script>
-		<script type="text/javascript" src="lib/Seriously.js/effects/seriously.color.js"></script>
-		<script type="text/javascript" src="lib/Seriously.js/effects/seriously.edge.js"></script>
-		<script type="text/javascript" src="lib/Seriously.js/effects/seriously.emboss.js"></script>
-		<script type="text/javascript" src="lib/Seriously.js/effects/seriously.exposure.js"></script>
 		<script type="text/javascript" src="lib/Seriously.js/effects/seriously.lumakey.js"></script>
 		<script type="text/javascript" src="lib/Seriously.js/effects/seriously.fader.js"></script>
-		<script type="text/javascript" src="lib/Seriously.js/effects/seriously.hue-saturation.js"></script>
-		<script type="text/javascript" src="lib/Seriously.js/effects/seriously.hex.js"></script>
-		<script type="text/javascript" src="lib/Seriously.js/effects/seriously.invert.js"></script>
-		<script type="text/javascript" src="lib/Seriously.js/effects/seriously.nightvision.js"></script>
-		<script type="text/javascript" src="lib/Seriously.js/effects/seriously.noise.js"></script>
-		<script type="text/javascript" src="lib/Seriously.js/effects/seriously.ripple.js"></script>
-		<script type="text/javascript" src="lib/Seriously.js/effects/seriously.sepia.js"></script>
-		<script type="text/javascript" src="lib/Seriously.js/effects/seriously.sketch.js"></script>
-		<script type="text/javascript" src="lib/Seriously.js/effects/seriously.split.js"></script>
-		<script type="text/javascript" src="lib/Seriously.js/effects/seriously.tone.js"></script>
-		<script type="text/javascript" src="lib/Seriously.js/effects/seriously.tvglitch.js"></script>
-		<script type="text/javascript" src="lib/Seriously.js/effects/seriously.vignette.js"></script>
-		<script type="text/javascript" src="lib/gif.js"></script>
-		<script type="text/javascript" src="src/superchroma.js"></script>
-		<script type="text/javascript" src="src/feedback.js"></script>
-		<script type="text/javascript" src="src/crossfade.js"></script>
 		<script type="text/javascript" src="src/filterkey.js"></script>
 		<script type="text/javascript" src="src/transform.js"></script>
 		<script type="text/javascript" src="src/invert2.js"></script>
+		<script type="text/javascript" src="src/blend2.js"></script>
 		
 		<style>
 		
-		body {
-			background-color: #fff;
+		body, html {
 			margin: 0;
 			padding: 0;
 			overflow: hidden;
+			width: 100%; height: 100%;
+			font-family: Helvetica, sans-serif;
 		}
 		
+		/*
 		#canvas {
 			min-height: 100%;
 			width: 100%;
 			margin: auto;
+			
+		}
+		*/
+		#canvas {
 			overflow: hidden;
+			/* Set rules to fill background */
+			
+			/* Set up proportionate scaling */
+			
+			/* Set up positioning */
+			position: fixed;
+			top: 0;
+			left: 0;
+		}
+
+		@media screen and (max-width: 1024px) { /* Specific to this particular image */
+			#canvas {
+				left: 50%;
+				margin-left: -512px;   /* 50% */
+			}
 		}
 		
-		#controls {
+		a {
+			color: #0073ea
+		}
+		
+		a:visited {
+			color: #ff0084;
+		}
+		
+		h4, p {
+			margin: 1ex 0;
+		}
+		
+		#sidebar {
 			position: fixed;
 			right: 0;
-			bottom: 0;
-			max-height: 75%;
-			max-width: 100%;
+			top: 0;
+			height: 100%;
+			max-width: 50%;
 			border: 1px solid black;
 			min-width: 320px;
 			margin: 1ex;
-			
-			background: rgba(127,127,127,0.25);
+			padding-right: 1ex;
+			background: rgba(0,0,0,0.5);
 			overflow: auto;
+			z-index: 100;
+			box-sizing: border-box;
+			
+		}
+		
+		#controls {
+			overflow-x: hidden;
+			overflow-y: auto;
 		}
 		
 		.cv-control {
@@ -106,7 +137,6 @@
 		
 		.cv-container {
 			position: relative;
-			display: inline-block;
 			vertical-align: top;
 		}
 		
@@ -118,166 +148,424 @@
 			background: black;
 		}
 		
+		#error {
+			position: fixed;
+			width: 50%;
+			top: 1ex;
+			left: 50%;
+			margin-left: -25%;
+			background: #FFF;
+			padding: 1ex;
+			border-radius: 2ex;
+		}
+		
+		#error h1 {
+			text-align: center;
+		}
+		
+		#help {
+			position: fixed;
+			left: 0;
+			top: 0;
+			height: 100%;
+			width: 60ex;
+			max-width: 50%;
+			border: 1px solid black;
+			min-width: 20ex;
+			background: rgba(0,0,0,0.5);
+			overflow: auto;
+		}
+		
+		#help, #shortcuts {
+			margin: 1ex;
+			color: white;
+			z-index: 100;
+			padding: 0 1ex;
+			font-size: 9pt;
+		}
+		
+		#shortcuts {
+			position: fixed;
+			top: 0
+			left: 0;
+			background: rgba(0,0,0,0.5);
+			z-index: 100;
+		}
+		
+		#shortcuts.help_active {
+			display: none !important;
+		}
+		
+		#help small, #shortcuts small {
+			opacity: 0.7;
+			margin: auto 1ex;
+		}
+		
+		.thumb {
+			height: 50px;
+			border: 1px solid white;
+		}
+		
+		#quality_select {
+		
+		}
+		
+		#vid_select {
+		
+		}
+		
 		</style>
-		<script>
-			window.hasVideoList = $.Deferred();
-			window.hasVideoPlayer = $.Deferred();
-			
-			var socket = io.connect('http://localhost:8080');
-			
-			socket.on('hello', function(data) {
-				window.assets = data.assets;
-				window.controllerLayout = data.controller;
-				socket.emit('pageinfo', {
-					name: 'video'
-				});
-				
-				if (main) {
-					main.attachIO(socket);
-				}
-				
-				hasVideoList.resolve(data.assets);
-			});
-			
-			var commands = {
-				// set controlname to ui element / control
-				'assign': function() {},
-				
-				// return list of current ui / controls
-				'list': function() {
-					var out = {};
-					C3Node.library.forEach(function(node, i) {
-						out[node.id] = node.controls;
-					});
-					return out;
-				},
-				
-				'keyevent': function(keyString) {
-					jwerty.fire(keyString, document, document.body);
-				}
-				
-			};
-			
-			for(var cmd in commands) {
-				if(commands.hasOwnProperty(cmd)) {
-					socket.on(cmd, commands[cmd]);
-				}
-			}
-			
-		</script>
-	
+		
 	</head>
 	<body class="black">
-		<div id="controls">
+		<div id="sidebar">
+			<div id="controls">
+			</div>
+			
+		</div>
+		<div id="shortcuts" style="display: none" class="help_active">
+			<h4>Keyboard Shortcuts</h4>
+			<ul>
+				<li>a<small>/</small>w<small>/</small>s<small>/</small>d: move input</li>
+				<li>shift + a<small>/</small>w<small>/</small>s<small>/</small>d: scale/rotate input</li>
+				<li>up<small>/</small>down<small>/</small>left<small>/</small>right: move feedback</li>
+				<li>shift + up<small>/</small>down<small>/</small>left<small>/</small>right: scale/rotate feedback</li>
+				
+				<li>[<small>/</small>]: tolerance</li>
+				<li>shift + [<small>/</small>]: input/feedback mix</li>
+				<li>/: flip input/feedback</li>
+				<li>shift + /: play/pause video</li>
+				<li>shift + \: show/hide controls</li>
+				<li>ctrl + enter: start/stop processing</li>
+			</ul>
+		</div>
+				
+	<div id="error">
+		<h1>Sorry!</h1>
+		<p>It seems your browser does not support WebGL and/or HTML5 video and/or WebRTC</p>
+		<p>Try <a href="http://www.google.com/chrome">Google Chrome</a> for best results</p>
+		<p>For more information see: <br/>
+			<a href="http://get.webgl.org/">get.webgl.org</a><br/>
+			<a href="http://www.webrtc.org/">webrtc.org</a><br/>
+		</p>
+	</div>
+	
+	<div id="help">
+		<h4>About</h4>
+		<p>This page is an experiment in using HTML5 video, WebRTC and WebGL to create a live VJ performance tool.  In other words, fun times with video.  Use the controls on the right to change the video effect parameters.  For best results (if your computer has a webcam and your browser <a href="http://www.webrtc.org/">supports WebRTC</a>) then give the page permission to Allow use of the camera.
+		</p>
+		<h4>Warning!</h4>
+		<p>This page may produce strobe effects/flashing lights/rapid pattern changes.  If you're susceptable to photosensitive epileptic seizures I recommend trying something more soothing, like <a href="http://www.lukeselden.com/waves.html">this experiment</a>.</p>
+		<p>Also, this is an experiment, use at your own risk.  It may break, may crash your browser or computer, annoy your cat, etc.</p>
+		<p>If you're having performance issues try a different resolution (default 960x540).  Note that resolution of the input image is limited by your webcam (usually 640x480), but the feedback quality will change</p>
+		<div id="quality_select">
+		<ul>
+			<li>Low: <a href="index.html?w=320&h=180">320x180</a></li>
+			<li>Standard Definition: <a href="index.html?w=640&h=360">640x360</a></li>
+			<li>Default: <a href="index.html?w=960&h=540">960x540</a></li>
+			<li>High Definition: <a href="index.html?w=1280&h=720">1280x720</a></li>
+			<li>Ultra-High Definition: <a href="index.html?w=1920&h=1080">1920x1080</a></li>
+		</ul>
+		</div>
+		<div id="vid_select">
+		<h4>Choose your video:</h4>
+		<ul>
+			<a id="vid_phone" href="index.html?vid=phone"><img class="thumb" src="assets/phone.jpg" /></img></a>
+			<a id="vid_fur" href="index.html?vid=fur"><img class="thumb" src="assets/fur.jpg" /></img></a>
+			<a id="vid_pins" href="index.html?vid=safetypins"><img class="thumb" src="assets/safetypins.jpg" /></img></a>
+		</ul>
 		</div>
 		
+		
+		<script type="text/javascript">
+			$(document).ready(function() {
+				$('#social').share({
+						networks: ['email','pinterest','facebook','reddit'],
+						orientation: 'horizontal',
+						affix: 'left bottom'
+				});
+			});
+		</script>
+    <h4>Share</h4>
+		<div id="social"></div>
+		
+		<h4>Credits</h4>
+		<ul>
+			<li>Created by <a href="http://www.lukeselden.com">Luke Selden</a></li>
+			<li>WebGL engine: <a href="http://seriouslyjs.org/">Seriously.js</a></li>
+			<li>UI XY pads: <a href="https://github.com/charlieroberts/interface.js">Interface.js</a></li>
+			<li>Keyboard handling: <a href="https://github.com/keithamus/jwerty">jwerty</a></li>
+			<li>Other libraries: jquery, underscore, EventEmitter, jquery.share</li>
+			
+		</ul>
+	</div>
+	
 	<canvas id="canvas" width="800" height="600"></canvas>
-	
-	<!--
-	<script type="text/javascript" src="lib/html5slider.js"></script>
-	<script type="text/javascript" src="lib/colorPicker/colorPicker.js"></script>
-	-->
-	<script>
-		var USEVIDEO = false;
-		var videoLoadPromise = $.Deferred();
-		
-		$(document).ready(function() {
-			if(USEVIDEO) {
-				var videoStream,
-						video,
-						getUserMedia = navigator.getUserMedia || navigator.mozGetUserMedia || navigator.webkitGetUserMedia,
-						url = window.URL || window.mozURL || window.webkitURL;
-									
-				video = document.createElement('video');
-				video.id = 'img';
-				video.width = 320;
-				video.height = 240;
-				video.autoplay = 'autoplay';
-				$(video).hide();
-				document.body.appendChild(video);
-				
-				if( !getUserMedia ) {
-					throw new Error('getUserMedia is not available');
-				}
-				
-				getUserMedia.call(navigator, {video: true}, function(stream) {				
-					videoStream = stream;
-					window.stream = stream;
-					if (video.mozSrcObject !== undefined) {
-						video.mozSrcObject = stream;
-					} else {
-						video.src = (url) ? url.createObjectURL(stream) : stream;
-					}
-					video.play();
-					videoLoadPromise.resolve();
-				}, function(e) {
-					console.error(e);
-				});
-				
-				video.addEventListener('error', function(e) {
-					console.error('video', e.code);
-				});
-				
-			} else {
-				/*
-				var el = document.createElement('img');
-				el.id = 'img';
-				el.width = 320;
-				el.height = 240;
-				el.src = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAANwAAAClCAYAAAA3d5OIAAAABmJLR0QA/wD/AP+gvaeTAAAAB3RJTUUH2gIPFxcpA4p/0AAAA2BJREFUeJzt2r9qVHkcxuHvmRyHhCASRcRStErnwnYWWdgljaX1doqCld5CRNhLELtd8AJs1sq5AmFTuMUqoiABXSZIxEgyzngDyWbI4vsrfJ72/HnPwHw4U0w3Go1m1cjz59drdfWfJtt/j8/XrdOPmmxXVfUvrtXk0r9Ntq/8caU2Hm402a6qGg9+qdPT/Sbb909cqyf7t5tsV1UNmi3Dd0hwECQ4CBIcBAkOggQHQYKDIMFBkOAgSHAQJDgIEhwECQ6CBAdBgoMgwUGQ4CBIcBAkOAgSHAQJDoIEB0GCgyDBQZDgIEhwECQ4CBIcBAkOggQHQYKDIMFBkOAgSHAQJDgIEhwECQ6CBAdBgoMgwUGQ4CBIcBAkOAgSHAQJDoIEB0GCgyDBQZDgIEhwECQ4CBIcBAkOggQHQYKDIMFBkOAgSHAQJDgIEhwECQ6CBAdBgoMgwUGQ4CBIcBAkOAgSHAQJDoIEB0GCgyDBQZDgIEhwECQ4CBIcBAkOggQHQYKDIMFBkOAgSHAQJDgIEhwECQ6CBAdBgoMgwUGQ4CBIcBAkOAgSHAQJDoIEB0GCgyDBQZDgIEhwECQ4CBIcBAkOggQHQYKDIMFBkOAgSHAQJDgIEhwECQ6C+rW1duPLyz/W4uK4yfbZ6akabTeZrqqqeycv17Phsybbf/2wVGujJtNVVbVy82IN3r9vsr2+PqzRjSbTVeUNB1GCgyDBQZDgIEhwECQ4CBIcBAkOggQHQYKDIMFBkOAgqO9PPm02PhuOa78/dejxy6sX6szK4cf/j+Xpcm1/Pv6/l7dejevNy3fHvv7DtGpx/9yxr/9P3bQ+94f/OXiws1MnNje/zfYcph8/1uzLlyPP67quBoP53gkLCwtznbe1tVWbDT97VxeuzpqtH+HPB3dq/eefWj/Gge7++luNfn/d+jEONBl8qrcrj1s/xqF2d3drNjv6a9f3fQ2Hw7nuubS0VF3XHXneZDKpvb29ue75LfhJCUGCgyDBQZDgIEhwECQ4CBIcBAkOggQHQYKDIMFBkOAgSHAQJDgIEhwECQ6CBAdBgoMgwUGQ4CBIcBAkOAgSHAQJDoIEB0GCgyDBQZDgIEhwECQ4CBIcBAkOggQHQYKDIMFBkOAgSHAQJDgIEhwECQ6CvgJd+V3gFFLyFgAAAABJRU5ErkJggg==";
-				document.body.appendChild(el);
-				*/
-				videoLoadPromise.resolve();
-			}
-		});
-		</script>
-		
-		<script>
-	
-		</script>
 	<script type="text/javascript">
 		var s;
+	
+		var promise = $.Deferred(),
+				gl;
 				
+		promise.fail(webGLUnsupported);
+		promise.done(initialize);
 		
-		videoLoadPromise.done(function() {
+		if (!window.WebGLRenderingContext) {
+			// Browser has no idea what WebGL is. Suggest they
+			// get a new browser by presenting the user with link to
+			// http://get.webgl.org
+			promise.reject('Browser does not support WebGL');
+		}
+		
+		var canvas = document.getElementById('canvas');
+		//try {
+			gl = canvas.getContext("webgl") || canvas.getContext('experimental-webgl');
+			console.log(gl);
+			if(gl) {
+				promise.resolve('webgl supported');
+			} else {
+				promise.reject('unable to initialize WebGL');
+			}
+		//} catch(e) {
+			//console.error('webgl', e);
+		//}
+			// Browser could not initialize WebGL. User probably needs to
+			// update their drivers or get a new browser. Present a link to
+			// http://get.webgl.org/troubleshooting
+		promise.resolve('seems to work');
+
+		function webGLUnsupported() {
+			$('#error').show();
+		}		
+		
+		function setCanvasRatio(ratio) {
+		
+			var $canvas = $('#canvas');
+			//get the width and height of the viewport and store it in an object,
+			//also get the aspect ratio of the image and it's calculated height based on the viewport's width
+			
+			ratio = isNaN(ratio) ? (parseFloat($canvas.width()) / parseFloat($canvas.height())) : ratio;
+			
+			var viewport = {
+					width   : $(this).width(),
+					height : $(this).height()
+				},
+				canvasHeight = Math.floor(viewport.width / ratio);
+
+				console.log($canvas.height(), $canvas.width(), viewport, canvasHeight, (canvasHeight > viewport.height), Math.floor((canvasHeight - viewport.height) / 2 * -1));
+				
+				//update the CSS of the image element
+				$canvas.css({
+						width     : viewport.width,
+						height    : canvasHeight,
+						marginTop : (canvasHeight > viewport.height) ? Math.floor((canvasHeight - viewport.height) / 2 * -1) : 0
+				});
+				
+				
+
+		//trigger a `resize` event to fire on the `window` object for page-load so the element is loaded as full-width
+		}
+		
+		$(window).on('resize', setCanvasRatio).trigger('resize');
+		
+		function initialize() {
+		
+			var query = document.location.search,
+					loc = document.location.href,
+					screenWidth = $(document.body).width(),
+					screenHeight = $(document.body).height(),
+					width = (/w=(\d+)/.exec(query) || [])[1] || 960,
+					height = (/h=(\d+)/.exec(query) || [])[1] || 540,
+					selectedVideoName = (/vid=([^&]*)/.exec(query) || [])[1] || ['phone','fur'][Math.floor(Math.random()*2)],
+					offsetTop, offsetLeft;
+					
+			
+			$('#error').hide();
+			
+			/*		
+			$('#canvas')
+				.attr({
+					width: Math.min(width, screenWidth),
+					height: Math.min(height, screenHeight)
+				});
+			*/
 			s = Seriously();
 			
-			var main = new Main();
+			var videos = {
+				fur: 'assets/fur.webm',
+				phone: 'assets/phone.webm',
+				safetypins: 'assets/safetypins.webm'
+			};
 			
-			main.attachIO(socket);
+			// TODO super hacky
+			var prefix = /\?/.test(loc) ? '&' : '?';
+			$('#vid_fur').attr('href', loc.replace(/(&|)vid=([^&]*)/,'') + prefix + 'vid=fur');
+			$('#vid_phone').attr('href', loc.replace(/(&|)vid=([^&]*)/,'') + prefix + 'vid=phone');
+			$('#vid_safetypins').attr('href', loc.replace(/(&|)vid=([^&]*)/,'') + prefix + 'vid=safetypins');
 			
-			window.main = main;
+			console.log(videos[selectedVideoName]);
+			var main = new Main(videos[selectedVideoName]);
 			
-			hasVideoList.done(function(assets) {
-				main.vid1.load(assets[~~(Math.random()*assets.length)].path);
+			main.vid1.on('load', function() {
+				var el = main.vid1.el,
+						w = el.videoWidth,
+						h = el.videoHeight;
+						
+				if(w && h) {
+					setCanvasRatio(w/h);
+				}
 			});
 			
-			/*
-			addUI('filterkey', main.key1, 'key input');
-			addUI('transform', main.move1, 'key loop');
-			addUI('filterkey', main.key2, 'key input');
-			addUI('transform', main.move2, 'key loop');
-			addUI('blend', main.mixer, 'blend');
-			*/
-			initKeys();
+			main.webcam.on('load', function() {
+				var el = main.vid1.el,
+						w = el.videoWidth,
+						h = el.videoHeight;
+						
+				if(w && h) {
+					setCanvasRatio(w/h);
+				}
+			});
+					
+			window.main = main;
+			main.controls = {};
 			
-		});
+			addMainControls();
+			
+			addUI('filterkey', main.key1, false);
+			addUI('transform', main.move2, false);
+			addUI('blend', main.mixer, true);
+			
+			initKeys();
+				
+		}
 		
-		var controls = {};
-		function addUI(effectName, patch, label) {
-			var manifest = patch.controls,
-					effect = patch.effect,
+		function addMainControls() {
+			var folder = $('<div class="cv-container"></div>').appendTo($('#controls')),
+					activeStatus = true,
+					backgroundFlipped = false,
 					ctl;
 			
-			var folder = $('<div class="cv-container"><div class="cv-label">' + effectName + '</div></div>').appendTo($('#controls'));
+			var activeControl = folder.vjui('button', { label: 'active'	});
+			activeControl.render(activeStatus);
+			
+			$(activeControl).on('change:vjui', function(evt, value) {
+				if(!main) return;
+				
+				if(!activeStatus) {
+					Seriously().go();
+					main.target.go();
+					if(main.vid1) main.vid1.play();
+					activeStatus = true;
+				} else {
+					activeStatus = false;
+					Seriously().stop();
+					if(main.vid1) main.vid1.stop();
+					main.target.stop();
+				}
+			});
+			
+			main.activeControl = activeControl;
+			
+			ctl = folder.vjui('button', {	label: 'invert' });
+			ctl.render(false);
+			
+			$(ctl).on('change:vjui', function(evt, value) {
+				$(document.body).toggleClass('black');
+			});
+			
+			var controlsHelpCtl = folder.vjui('button', {	label: 'help', momentary: false });
+			controlsHelpCtl.render(true);
+			
+			$(controlsHelpCtl).on('change:vjui', function(evt, value) {
+					$('#help').toggle(value);
+					$('#shortcuts, #help').toggleClass('help_active');
+				
+			});
+			
+			ctl = folder.vjui('button', {	label: 'keys', momentary: false });
+			ctl.render(false);
+			
+			$(ctl).on('change:vjui', function(evt, value) {
+				$('#shortcuts').toggle(value);
+				
+			});
 			
 			
-			function makeCtl(key, input, effect) {
-				var ctl;
+			ctl = $('#help').vjui('button', {	label: 'close', momentary: true });
+			ctl.render(true);
+			
+			$(ctl).on('change:vjui', function(evt, value) {
+				$('#help').hide();
+				$('#shortcuts, #help').toggleClass('help_active', false);
+				controlsHelpCtl.render(false);
+				ctl.render(true);
+			});
+			
+			ctl.el.css({
+				position: 'absolute',
+				top: '0em',
+				right: '2ex'
+			});
+		
+		}
+		
+		function addUI(patchName, patch, hasLayers) {
+			var ctl;
+			
+			var folder = $('<div class="cv-container"><div class="cv-label">' + patchName + '</div></div>').appendTo($('#controls'));
+			
+			
+			Object.keys(patch.controls).forEach(function(key) {
+				var input = patch.controls[key];
+				
+				
+				var ctl = makeCtl(key, input, patch, folder);
+					
+				main.controls[patchName + '_' + key] = ctl;
+			
+			});
+			
+			if(!hasLayers) {
+				ctl = folder.vjui('button', {
+					label: 'bypass'						
+				});
+				
+				ctl.render(false);
+				
+				$(ctl).on('change:vjui', function(evt, value) {
+					//socket.emit('set', {path: patchName + '.bypass', value: !!value});
+					patch.bypass(value)
+				});
+				
+				patch.on('load', function(current, old) {
+					ctl.render(current !== patch.effect);
+				});
+			} else {
+				ctl = folder.vjui('button', {
+					label: 'flip layers'	
+				});
+				
+				ctl.render(false);
+				
+				$(ctl).on('change:vjui', function(evt, value) {
+					var tmp = patch.inputs.bottom;
+					patch.setInput('bottom', patch.inputs.top);
+					patch.setInput('top', tmp);
+				});
+				
+				main.controls.flip = ctl;
+				
+			}
+				
+		}
+		
+		function makeCtl(key, input, patch, folder) {
+			var ctl;
 
-				if (input.type === 'number') {
+			switch (input.type) {
+				case 'number':
 					ctl = folder.vjui('control', {
-						label: input.title,
+						label: key,
 						spec: {
 							min: input.min,
 							max: input.max,
@@ -286,7 +574,9 @@
 						}
 					});
 					
-					$(ctl).on('change:vjui', function(evt, value) {
+					ctl.render(input.defaultValue);
+					
+					$(ctl).on('change:vjui', function(evt, value, normal) {
 						patch.set(key, value);
 					});
 					
@@ -296,9 +586,10 @@
 						}
 					});
 					
-				} else if (input.type === 'boolean') {
+				break;
+				case 'boolean':
 					ctl = folder.vjui('button', {
-						label: input.title						
+						label: key						
 					});
 					
 					ctl.render(input.defaultValue);
@@ -312,92 +603,79 @@
 							ctl.render(newValue);
 						}
 					});
+
+				break;
+				case 'color':
+					ctl = widgets[input.type]($.extend({
+						container: $('<div class="cv-control cv-' + input.type + '"></div>').height('10ex').appendTo(folder)
+					}, input));
 					
-				} else if (input.type !== 'number') {
+					ctl.value.change(function() {
+						patch.set(key, ctl.value.toArray());
+					});
+					
+					patch.on('change', function(changedKey, newValue) {
+						
+						if (changedKey === key && false) {
+							ctl.value.set({
+								r: newValue[0],
+								g: newValue[1],
+								b: newValue[2]
+							});
+						}
+					});
+				break;
+				case 'enum':
 					ctl = widgets[input.type]($.extend({
 						container: $('<div class="cv-control cv-' + input.type + '"></div>').appendTo(folder)
 					}, input));
 					
-					if(input.type === 'boolean') {
-						$(ctl.el).on('change', function() {
-							effect[key] = ctl.el.checked;
-						});
-					} else if(input.type === 'number') {
-						ctl.value.change(function() {
-							effect[key] = ctl.value;
-						});
-					} else if(input.type === 'color') {
-						ctl.value.change(function() {
-							effect[key] = ctl.value.toString();
-						});
+					ctl.cv.change(function() {
+						console.log(ctl, ctl.cv.value, ctl.options[ctl.value], ctl.options[ctl.value.valueOf()]);
+						patch.set(key, ctl.value);
+					});
+					
+					patch.on('change', function(changedKey, newValue) {
+						if (changedKey === key) {
+						console.log('patch change',newValue);
+							ctl.menu.element.val(newValue);
+						}
+					});
+				break;
+				case 'vector':
+					ctl = widgets[input.type]($.extend({
+						container: $('<div class="cv-control cv-' + input.type + '"></div>').height('10ex').appendTo(folder)
+					}, input));
+					
+					ctl.value.change(function() {
+						patch.set(key, ctl.value.toArray());
+					});
+					
+					patch.on('change', function(changedKey, newValue) {
+						var currentValue;
 						
-						patch.on('change', function(changedKey, newValue) {
-							if (changedKey === key) {
+						if (changedKey === key) {
+							currentValue = ctl.value.toArray();
+							
+							if((currentValue[0] != newValue[0]) || (currentValue[1] != newValue[1])) {
 								ctl.value.set({
-									r: newValue[0],
-									g: newValue[1],
-									b: newValue[2]
+									x: newValue[0],
+									y: newValue[1]
 								});
-								/*
-								var c = ctl.value,
-										pos = ctl.xy.values[0];
-								
-										pos.x = c.h;
-										pos.y = 1 - c.l;
-										
-										ctl.z.setValue.call(ctl.z, c.s, false);
-										ctl.xy.refresh.call(ctl.xy);
-								*/		
-								//ctl.xy.values[0].x = newValue[0];
-								//ctl.xy.values[0].y = newValue[2];
-								//ctl.z.setValue(newValue[1], false);
-								//ctl.xy.refresh.call(ctl.xy);
+							} else {
+							
 							}
-						
-						});
-						
-					} else if (input.type === 'enum') {
-						ctl.cv.change(function() {
-							effect[key] = ctl.value;
-						});
-					} else if (input.type === 'vector') {
-						ctl.value.change(function() {
-							effect[key] = ctl.value.toArray();
-						});
-						
-					}
-				}
-				
-				return ctl;
-				
+						}
+					});
+					
+				break;	
 			}
 			
-			Object.keys(manifest).forEach(function(key) {
-				var input = manifest[key];
-				
-				if(input.type in widgets) {
-					controls[key] = makeCtl(key, input, effect);
-				}
-			});
-			
-			ctl = folder.vjui('button', {
-				label: 'bypass'						
-			});
-			
-			ctl.render(false);
-			
-			$(ctl).on('change:vjui', function(evt, value) {
-				patch.bypass(value);
-			});
-			
-			patch.on('load', function(current, old) {
-				ctl.render(current !== effect);
-			});
-			
+			return ctl;
 			
 		}
 		
-		$('#controls').toggle();
+		//$('#controls').toggle();
 	
 	</script>	
 	</body>

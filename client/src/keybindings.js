@@ -1,14 +1,14 @@
 function initKeys() {
 	var MOVE_INCREMENT = 0.01;
 	
-	jwerty.key('shift+=', function(event, key) {
-		$('#controls').toggle();
+	jwerty.key('shift+\\', function(event, key) {
+		$('#sidebar').toggle();
 	});
-	
-	jwerty.key('ctrl+=', function(event, key) {
+	/*
+	jwerty.key('shift+\\', function(event, key) {
 		$('body').toggleClass('black');
 	});
-	
+	*/
 	jwerty.key('open-bracket/close-bracket', function(event, key) {
 		var obj = main.key1,
 				old = obj.get('tolerance'),
@@ -22,15 +22,21 @@ function initKeys() {
 	});
 	
 	jwerty.key('shift+open-bracket/shift+close-bracket', function(event, key) {
-		var obj = main.key2,
-				old = obj.get('tolerance'),
+		var obj = main.mixer,
+				old = obj.get('opacity'),
 				val;
 				
 		val =  /open/.test(key)
 			? old - MOVE_INCREMENT
 			: old + MOVE_INCREMENT;
 			
-		obj.set('tolerance', val);
+		obj.set('opacity', val);
+	});
+	
+	jwerty.key('forward-slash', function(event, key) {
+		var ctl = main.controls.flip;
+		ctl.change();
+		ctl.render(!ctl.active);
 	});
 	
 	jwerty.key('w/s/a/d/up/down/left/right', function(event, key) {
@@ -60,6 +66,7 @@ function initKeys() {
 		current = current.map(function(x) { return Math.round(x*1000)/1000; });
 
 		obj.set('offset', current);
+
 	});
 	
 	jwerty.key('shift+w/shift+a/shift+s/shift+d/shift+up/shift+down/shift+left/shift+right', function(event, key) {
@@ -92,49 +99,52 @@ function initKeys() {
 	var SPEED_INCREMENT = 0.1;
 	
 	jwerty.key('comma', function(event, key) {
+		if(!main.vid1) return;
 		var pre = main.vid1.speed;
 		main.vid1.speed = main.vid1.speed - SPEED_INCREMENT;
-		main.vid2.speed = main.vid2.speed - SPEED_INCREMENT;
 	});
 	
 	jwerty.key('period', function(event, key) {
+		if(!main.vid1) return;
 		var pre = main.vid1.speed;
 		main.vid1.speed += SPEED_INCREMENT;
-		main.vid2.speed += SPEED_INCREMENT;
 	});
 	
-	jwerty.key('forward-slash', function(event, key) {
-		if(main.vid1.paused) {
-			main.vid1.play();
-		} else {
-			main.vid1.pause();
+	jwerty.key('shift+forward-slash', function(event, key) {
+		if(main.vid1) {
+			if(main.vid1.paused) {
+				main.vid1.play();
+			} else {
+				main.vid1.pause();
+			}
 		}
 		
-		if(main.vid2.paused) {
-			main.vid2.play();
-		} else {
-			main.vid2.pause();
+		if(main.vid2) {
+			if(main.vid2.paused) {
+				main.vid2.play();
+			} else {
+				main.vid2.pause();
+			}
 		}
 	});
 	
-	var activeStatus = null;
+	var activeStatus = true;
 	jwerty.key('ctrl+enter', function(event, key) {
-		if(activeStatus) {
+		var ctl = main.activeControl;
+		ctl.change();
+		ctl.render(!ctl.active);
+		/*
+		if(!activeStatus) {
 			Seriously().go();
 			main.target.go();
-			if(activeStatus.vid1) main.vid1.play();
-			if(activeStatus.vid2) main.vid2.play();
-			activeStatus = null;
+			activeStatus = true;
 		} else {
-			activeStatus = {
-				vid1: !main.vid1.paused,
-				vid2: !main.vid2.paused
-			};
+			activeStatus = false;
 			Seriously().stop();
-			main.vid1.stop();
-			main.vid2.stop();
+			if(main.vid1) main.vid1.stop();
 			main.target.stop();
 		}
+		*/
 	});
 	
 }

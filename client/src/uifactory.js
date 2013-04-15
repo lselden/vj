@@ -76,7 +76,6 @@
 		
 		C3Vector.prototype.set = function( key, value, isNormalized, silent ) {
 			var vector = this.vector;
-			
 			if (key.toString() === key) {
 				vector[key].set(value, isNormalized, true);
 			} else if (key instanceof Object) {
@@ -91,7 +90,7 @@
 			}
 			
 			if(!silent) {
-				this.trigger('change', '*');
+				this.trigger('change', this.toArray());
 			}
 			
 		}
@@ -470,8 +469,6 @@
 					bounds: [0, 0, 1, 0.1]
 				});
 				obj.xy = new Interface.XY({
-					x: obj.value.x.normal,
-					y: obj.value.y.normal,
 					usePhysics: false,
 					keys: { x: 'x', y: 'y' },
 					numChildren: 1,
@@ -491,6 +488,28 @@
 				obj.pane.add(obj.label);
 				obj.pane.add(obj.xy);
 				
+				obj.value.change(function() {
+					var c = obj.value,
+							x = c.x.normal,
+							y = c.y.normal,
+							width = obj.xy._width(),
+							height = obj.xy._height(),
+							child = obj.xy.children,
+							pos = obj.xy.values[0] || ({x: 0, y: 0});
+					
+					child[0].x = x * width;
+					child[0].y = (1.0-y) * height;
+					//pos.x = c.x.normal;
+					//pos.y = c.y.normal;
+					
+					//obj.xy.values[0] = pos;
+					
+					obj.xy.refresh.call(obj.xy);
+					
+				});
+				
+				obj.value.trigger('change');
+				
 				return obj;
 				
 			},
@@ -509,10 +528,10 @@
 					bounds: [0, 0, 1, 0.1]
 				});
 				obj.xy = new Interface.XY({
-					x: obj.value.h,
-					y: obj.value.v,
+					y: obj.value.h,
+					x: obj.value.v,
 					usePhysics: false,
-					keys: { x: 'h', y: 'l' },
+					keys: { y: 'h', x: 'l' },
 					numChildren: 1,
 					background: obj.value.toString(),
 					fill: 'rgba(127,127,127,0.1)',
@@ -523,9 +542,9 @@
 						var pos = obj.xy.values[0];
 						
 						obj.value.set({
-							h: pos.x,
+							h: 1.0 - pos.y,
 							s: obj.z.value,
-							l: 1.0 - pos.y
+							l: pos.x
 						});
 					}
 				});
@@ -548,8 +567,8 @@
 							colorString = c.toString(),
 							pos = obj.xy.values[0];
 					
-					pos.x = c.h;
-					pos.y = 1 - c.l;
+					pos.y = 1 - c.h;
+					pos.x = c.l;
 					
 					obj.xy.background = colorString;
 					
@@ -557,6 +576,8 @@
 					obj.xy.refresh.call(obj.xy);
 					
 				});
+				
+				obj.value.trigger('change');
 				
 				return obj;
 			}

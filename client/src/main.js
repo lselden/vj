@@ -195,10 +195,12 @@ C3Node.prototype.set = function(key, value) {
 				rgbValue[1] = value;
 			}
 			
+			control.value = rgbValue;
 			
-		} 
+		} else {
 		
-		control.value = rgbValue;
+			control.value = value;
+		}
 	
 	} else {
 		control.value = value;
@@ -216,7 +218,7 @@ C3Node.prototype.get = function(key) {
 			effectVal = this.effect && this.effect[key];
 	
 	if(controlVal != effectVal) {
-		console.warn("get, values don't match: ", controlVal, effectVal);
+		//console.warn("get, values don't match: ", controlVal, effectVal);
 	}
 	
 	return controlVal;
@@ -330,6 +332,11 @@ $.extend(Patch.prototype, C3Node.prototype, {
 			return true;
 		}
 		
+		if(!newInput) {
+			console.warn("can't update input, no newInput:", key, newInput, oldInput);
+			return;
+		}
+		
 		if(key === 'top' && ('source' in this.effect)) {
 			this.effect.source = newInput.valueOf();
 		} else {
@@ -416,40 +423,138 @@ $.extend(Patch.prototype, C3Node.prototype, {
 	
 });
 
+var C3Image = function(src, options) {
+	options || (options = {});
+	
+	var self = this;
+	
+	C3Node.call(this, 'image');
+	
+	this.el = $('img', {
+		css: {
+			position: 'absolute',
+			top: 0,
+			left: 0,
+			'z-index': -100
+		}
+	});
+	
+	
+	this.animate = !!options.animate;
+	
+	if(this.animate) {
+		this.on('load', this.play.bind(this));
+	}
+	
+	if(src) this.load(src);
+	
+	Object.defineProperties(this, {
+		paused: {
+			enumerable: true, configurable: true,
+			get: function() { return self.animate; },
+			set: function(newState) { 
+				if(!!newState && !self.animate) self.pause();
+				else if(!newState && self.animate) self.play();
+			}
+		},
+		src: {
+			enumerable: true, configurable: true,
+			get: function() { return self.el.src; },
+			set: function(src) { self.load(src); }
+		}
+	});
+	
+	return this;
+}
 
 
-/*
+C3Image.prototype = Object.create(C3Node.prototype);
 
-effects = ['ascii', 'bleach-bypass', 'emboss', 'exposure', 'fader', 'invert', 'noise', 'ripple', 'sketch', 'tone', 'tvglitch', 'vignette', 'lumakey', 'filterkey', 'transform']
+$.extend(C3Image.prototype, C3Node.prototype, {
+	controls: {
+		'src': {
+			type: 'string',
+			defaultValue: '',
+			uniform: 'src'
+		},
+		'paused': {
+			type: 'boolean',
+			defaultValue: false,
+			uniform: 'paused'
+		}
+	},
+	play: function() {
+		var self = this;
+console.log('playing');
+		this.animate = true;
+		
+		var updateFunction = function() {
+			if(self.effect) {
+				self.effect.update();
+			}
+			
+			if(self.animate) {
+				setTimeout(updateFunction, 1000/30);
+			}
+			
+		};
+		
+		setTimeout(updateFunction, 1000/30);
+	},
+	pause: function() {
+		this.animate = false;
+		
+	},
+	get: function(key) {
+		return this[key];
+	},
+	set: function(key, value) {
+		this[key] = value;
+	},
+	bypass: function(bool) {
+		console.warn('no bypass for image');
+	},
+	load: function(src) {
+		var self = this,
+				$el = $('<img>', {
+					src: src,
+					css: {
+						top: 0,
+						left: 0,
+						position: 'absolute',
+						'z-index': -1000
+					}
+				}).appendTo(document.body);
+	
+				promise = $.Deferred();
 
+		$el.on('load', function(evt) {
+			promise.resolve();
+		});
+		
+		promise.done(function() {
+			var oldEl = self.el,
+					oldNode = self.effect;
+			
+			self.el = $el[0];
+			self.effect = s.source(self.el);
+			self.emit('load', self.effect, oldNode);
+			
+			if(oldNode) {
+				oldNode.destroy();
+			}
+			
+			if(oldEl) {
+				$(oldEl).remove();
+			}
+			
+		});
+	},
 
-server send events:
-
-effect for key1, key2
-source video for vid1, vid2
-source for key1, key2 (could be vid1, vid2 or feedback)
-
-effect controls for key1, key2
-
-bypass for key1, key2
-
-
-blend controls
-
-Client send events:
-effect controls
-
-
-hue sat bright modify, 
-hue sat bright key
-tolerance softness
-invert opaque
-
-
-
-main:
-opacity, mode
-*/
+	valueOf: function() {
+		return this.effect;
+	}
+});
 
 
 
@@ -458,11 +563,7 @@ var Video = function(src, output, outputKey) {
 	
 	C3Node.call(this, 'video');
 	
-	this.el = this.makeVideoElement();
-	//this.effect = s.source(this.el);
-	
-	//if(output) this.output = output;
-	//this.outputKey = outputKey || 'source';
+	//this.el = this.makeVideoElement();
 	
 	if(src) this.load(src);
 	
@@ -556,7 +657,7 @@ $.extend(Video.prototype, C3Node.prototype, {
 				targetEl,
 				promise;
 
-		targetEl = (!this.el || this.el.src) ? this.makeVideoElement() : this.el;		
+		targetEl = this.makeVideoElement();
 		promise = this.loadVideo(src, targetEl).done(function(vid) {
 			
 			var oldEl = self.el,
@@ -595,6 +696,7 @@ $.extend(Video.prototype, C3Node.prototype, {
 			.one('canplay', function() {
 				vid.play();
 				console.log('canplay', vid);
+				self.emit('active');
 				promise.resolve(vid);
 			})
 			.one('error', function() {
@@ -611,8 +713,13 @@ $.extend(Video.prototype, C3Node.prototype, {
 			}
 		});
 
-		vid.src = src;
-		vid.load();
+		if( (src.toString() !== src) && (vid.mozSrcObject !== undefined)) {
+			vid.mozSrcObject = src;
+			vid.play();
+		} else {
+			vid.src = src;
+			vid.load();
+		}
 		
 		return promise;
 	},
@@ -628,12 +735,19 @@ $.extend(Video.prototype, C3Node.prototype, {
 		
 		getUserMedia.call(navigator, {video: true}, function(stream) {				
 			var src = (URL) ? URL.createObjectURL(stream) : stream;
-			
+			console.log('got stream');
 			self.stream = stream;
 			
-			// TODO fix this to be firefox compatible (mozSrcObject)
+			if (videoEl.mozSrcObject !== undefined) {
+				self.load.call(self, stream);
+				//video.mozSrcObject = stream;
+			} else {
+				self.load.call(self, src);
+			}
 			
-			self.load.call(self, src);
+			
+			
+			
 		}, function(error) {
 			console.error('webcam load error', error);
 		});
@@ -646,21 +760,68 @@ $.extend(Video.prototype, C3Node.prototype, {
 
 
 
-var Main =function() {
+var Main =function(initialImageUrl) {
 	if( !(this instanceof Main) ) return new Main();
 	
 	var self = this;
 	
-	this.vid1 = new Video();
-	this.vid2 = new Video();
-	
 	this.webcam = new Video();
 	this.webcam.loadWebCam();
 	
+	
+	
+	/*
+	this.vid1 = new C3Image(initialImageUrl, {
+		animate: true
+	});
+	
+	//this.kitten.load(  );
+	*/
+	this.vid1 = new Video();
+	this.vid1.load(initialImageUrl);
+	/*
+	this.vid1.on('load', function() {
+		console.log(self.vid1);
+		var el = self.vid1.el,
+				canvas = $('#canvas'),
+				w = el.videoWidth,
+				h = el.videoHeight,
+				cW = canvas.width(),
+				cH = canvas.height(),
+				screenW = $(document.body).width(),
+				screenH = $(document.body).height(),
+				aspect;
+		
+		if(w && h) {
+			aspect = w/h;
+			canvas.height( Math.round(parseFloat(cW)/aspect) );
+			console.log('set height from', cH, 'to', Math.round(parseFloat(cW)/aspect));
+		}
+		
+		
+	});
+	*/
 	// input
 	this.key1 = new Patch('filterkey', {
 		source: this.vid1
 	});
+	
+
+	this.webcam.on('active', (function(self) {
+		console.log('is active');
+		var callback = function() {
+			self.key1.setInput('top', self.webcam);
+			self.vid1.pause();
+			
+			self.vid1.effect.destroy();
+			$(self.vid1.el).remove();
+			
+			self.webcam.off('active', callback);
+		}
+		
+		return callback;
+		
+	})(self));
 	
 	this.invert = new Patch('invert2', {
 		source: this.key1
@@ -671,28 +832,16 @@ var Main =function() {
 	this.move1 = new Patch('transform', {
 		source: this.invert
 	});
-	
-	this.key2 = new Patch('filterkey', {
-		source: this.move1 // initially
-	});
-	
-	//this.key2.effect.matte([{x: -0.1, y: 0.10, id: 0}, {x: 0.800, y: 0.10, id: 1}, {x:0.500, y:-0.200, id: 2}, {x:-0.10, y: -0.700, id: 3}]);
-	
+		
 	this.move2 = new Patch('transform', {
-		source: this.key2
+		source: this.key1
 	});
 	
-	this.mixer = new Patch('blend', {
-		top: this.move2,
-		bottom: this.move1
+	this.mixer = new Patch('blend2', {
+		top: this.move1,
+		bottom: this.move2
 	});
 	
-	/*
-	this.fade = new Patch('crossfade', {
-		top: this.mixer,
-		bottom: this.move1
-	});
-	*/
 	this.target = s.target('#canvas');
 	
 	this.target.source = this.mixer.valueOf();
@@ -710,7 +859,7 @@ var Main =function() {
 				setTimeout(start, 2000);
 			}
 		} else {
-			self.key2.setInput('top', buffer);
+			self.move2.setInput('top', buffer);
 			self.feedback = buffer;
 		}
 		

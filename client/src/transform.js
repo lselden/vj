@@ -47,7 +47,8 @@ Seriously.plugin('transform', {
 			"",
 			"void main(void) {",
 			"	vec4 pixel = texture2D(source, vTexCoord);",
-			"	gl_FragColor = vec4(pixel.rgb, clamp(pixel.a*gain, 0.0, 1.0));",
+			//"	gl_FragColor = vec4(pixel.rgb, clamp(pixel.a*gain, 0.0, 1.0));",
+			"	gl_FragColor = vec4(clamp(pixel.rgb*gain, 0.0, 1.0), pixel.a);",
 			"}"
 		].join('\n');
 		
@@ -79,7 +80,7 @@ Seriously.plugin('transform', {
 		size: {
 			type: 'number',
 			uniform: 'size',
-			defaultValue: 1,
+			defaultValue: 0.9,
 			min: 0.5,
 			max: 2
 		},
@@ -87,8 +88,8 @@ Seriously.plugin('transform', {
 			type: 'number',
 			uniform: 'gain',
 			defaultValue: 1,
-			min: 0.8,
-			max: 1.2
+			min: 0,
+			max: 2
 		}
 	},
 	title: 'Transform',

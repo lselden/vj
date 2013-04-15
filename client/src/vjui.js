@@ -105,7 +105,6 @@ Ctl.define('label', {
 			if (!isNaN(value)) {
 				normal = this.spec.unmap(value);
 			} else {
-				console.log(value, normal);
 			}
 		}
 		//this.el.text( this.label );
@@ -114,7 +113,7 @@ Ctl.define('label', {
 			range = Math.abs( normal-0.5 ) * width;
 			this.el.css({
 				'background-size': Math.abs( range ).toFixed() + 'px',
-				'background-position-x': (Math.min(normal, 0.5) * width).toFixed() + 'px'
+				'background-position': (Math.min(normal, 0.5) * width).toFixed() + 'px center'
 			});
 		} else {
 			this.el.css('background-size', (normal * width).toFixed() + 'px');
@@ -128,9 +127,24 @@ Ctl.define('label', {
 
 Ctl.define('range', {
 	template: '<input class="cv-slider" type="range" min=0 max=1 value=0.5 step=0.001 />',
+	polyfillTemplate: '<div class="cv-slider cv-slider-polyfill"><div class="cv-slider-handle"></div></div>',
+	usePolyfill: true,
 	initialize: function(options) {
+	
+	
+		// test html5 support
+		if( this.el.attr('type') != 'range' || (options.usePolyfill) ) {
+			this.isPolyfill = true;
+			this.polyfillDown = options.polyfillDown.bind(this);
+			this.polyfillUpdate = options.polyfillUpdate.bind(this);
+			this.polyfillRender = options.polyfillRender.bind(this);
+			options.makePolyfill.call(this, options.polyfillTemplate);
+			// TODO crap hack
+			this.polyfill.appendTo(options.parent);
+		}
+	
 		var spec = options.spec;
-		if( spec.step ) this.el.step = Math.max( spec.step, 0.00001 );
+		if( spec.step ) this.el.step = Math.max( spec.step / (spec.max - spec.min), 0.00001 );
 		this.el.on('change', this.change);
 		this.spec = spec;
 	},
@@ -143,6 +157,7 @@ Ctl.define('range', {
 			}
 		}
 		this.el.val( parseFloat(normal) );
+		
 	},
 	change: function() {
 		var normal = parseFloat(this.el.val()),
@@ -152,6 +167,87 @@ Ctl.define('range', {
 	
 	remove: function() {
 		this.el.remove();
+		if(this.polyfill) this.polyfill.remove();
+	},
+	makePolyfill: function(polyfillTemplate) {
+		var self = this,
+				polyfill = $(polyfillTemplate),
+				handle = polyfill.find('.cv-slider-handle');
+		
+		this.polyfill = polyfill;
+		
+		this.el.hide();
+		
+		polyfill.on('mousedown touchstart', this.polyfillDown);
+		
+		this.render = this.polyfillRender;
+		
+		
+	},
+	polyfillRender: function(value, normal) {
+		if (isNaN(normal)) {
+			if (!isNaN(value)) {
+				normal = this.spec.unmap(value);
+			} else {
+				return;
+			}
+		} else {
+			normal = parseFloat(normal);
+		}
+		
+		this.el.val( normal );
+		
+		var handle = this.polyfill.find('.cv-slider-handle'),
+				handleWidth = handle.width(),
+				rangeWidth = this.polyfill.width(),
+				pos = normal * (rangeWidth - (handleWidth*0.5));
+		
+		handle.css('left', pos.toFixed() + 'px');
+		
+	},
+	polyfillDown: function(evt) {
+		var self = this,
+				polyfill = this.polyfill,
+				rangeWidth = this.polyfill.width(),
+				handleWidth = this.polyfill.find('.cv-slider-handle').width(),
+				currentEvent;
+
+		evt.preventDefault();
+		
+		var currentEvt = evt,
+				offset = polyfill.offset();
+		
+		var move = function(evt) {
+				currentEvt = evt;
+				evt.preventDefault();
+				self.polyfillUpdate.call(self, evt, offset, handleWidth, rangeWidth);
+		};
+		var end = function(evt) {
+				self.polyfillUpdate.call(self, currentEvt, offset, handleWidth, rangeWidth);
+				$(document.body).off('mousemove touchmove', move);
+				$(document.body).off('mouseup touchend', end);
+		};
+		
+		$(document.body).on('mousemove touchmove', move);
+		$(document.body).on('mouseup touchend', end);
+	},
+	polyfillUpdate: function(evt, offset, handleWidth, rangeWidth) {
+		
+		if (evt.touches && evt.touches.length) {
+			evt = evt.touches[evt.touches.length - 1];
+		}
+		
+		var x = Math.min(Math.max(0, evt.clientX - offset.left), rangeWidth),
+				normal,
+				value;
+		
+		normal = (x - handleWidth / 2) / (rangeWidth - handleWidth);
+		value = this.spec.map(normal);
+		this.render(value, normal);
+		
+		console.log(normal, value);
+		
+		this.change();
 	}
 });
 
